@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceFile>C:/Users/pdant/source/repos/Pong/Pong/bin/Debug/netcoreapp3.1/Content/myFont.spritefont</SourceFile>
+  <SourceTime>2020-08-25T21:09:43.7401721-03:00</SourceTime>
+  <DestFile>C:/Users/pdant/source/repos/Pong/Pong/bin/Debug/netcoreapp3.1/Content/bin/DesktopGL/Content/myFont.xnb</DestFile>
+  <DestTime>2022-01-04T11:16:01.8309416-03:00</DestTime>
+  <Importer>FontDescriptionImporter</Importer>
+  <ImporterTime>2020-08-10T13:17:54-03:00</ImporterTime>
+  <Processor>FontDescriptionProcessor</Processor>
+  <ProcessorTime>2020-08-10T13:17:54-03:00</ProcessorTime>
+  <Parameters>
+    <Key>PremultiplyAlpha</Key>
+    <Value>True</Value>
+  </Parameters>
+  <Parameters>
+    <Key>TextureFormat</Key>
+    <Value>Compressed</Value>
+  </Parameters>
+  <Dependencies />
+  <BuildAsset />
+  <BuildOutput />
+</PipelineBuildEvent>
