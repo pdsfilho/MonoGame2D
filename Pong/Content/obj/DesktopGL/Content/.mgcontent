@@ -5,8 +5,10 @@
   <Config />
   <SourceFiles>
     <File>C:/Users/pdant/source/repos/Pong/Pong/Content/background.jpg</File>
+    <File>C:/Users/pdant/source/repos/Pong/Pong/Content/foreground.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
   </DestFiles>
 </SourceFileCollection>

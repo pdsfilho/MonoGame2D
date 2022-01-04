@@ -13,6 +13,7 @@ namespace Series2D1
         private SpriteBatch _spriteBatch;
         private GraphicsDevice _device;
         private Texture2D _backgroundTexture;
+        private Texture2D _foregroundTexture;
 
         private int _screenWidth;
         private int _screenHeight;
@@ -39,6 +40,7 @@ namespace Series2D1
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _device = _graphics.GraphicsDevice;
             _backgroundTexture = Content.Load<Texture2D>("background");
+            _foregroundTexture = Content.Load<Texture2D>("foreground");
 
             _screenWidth = _device.PresentationParameters.BackBufferWidth;
             _screenHeight = _device.PresentationParameters.BackBufferHeight;
@@ -72,6 +74,7 @@ namespace Series2D1
         {
             Rectangle screenRectangle = new Rectangle(0, 0, _screenWidth, _screenHeight);
             _spriteBatch.Draw(_backgroundTexture, screenRectangle, Color.White);
+            _spriteBatch.Draw(_foregroundTexture, screenRectangle, Color.White);
         }
 
     }
