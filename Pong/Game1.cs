@@ -27,7 +27,8 @@ namespace Series2D1
         //Player Textures
         private Texture2D _carriageTexture;
         private Texture2D _cannonTexture;
-       
+        private float _playerScaling;
+
         //Screen Info
         private int _screenWidth;
         private int _screenHeight;
@@ -62,7 +63,7 @@ namespace Series2D1
             // TODO: Add your initialization logic here
             _graphics.PreferredBackBufferWidth = 500;
             _graphics.PreferredBackBufferHeight = 500;
-            _graphics.IsFullScreen = true;
+            _graphics.IsFullScreen = false;
             _graphics.ApplyChanges();
             Window.Title = "Monogame Tutorial";
             base.Initialize();
@@ -93,6 +94,8 @@ namespace Series2D1
             _foregroundTexture = Content.Load<Texture2D>("foreground");
             _carriageTexture = Content.Load<Texture2D>("carriage");
             _cannonTexture = Content.Load<Texture2D>("cannon");
+
+            _playerScaling = 40.0f / (float)_carriageTexture.Width;
 
             _screenWidth = _device.PresentationParameters.BackBufferWidth;
             _screenHeight = _device.PresentationParameters.BackBufferHeight;
@@ -137,7 +140,8 @@ namespace Series2D1
             {
                 if (_players[i].IsAlive)
                 {
-                    _spriteBatch.Draw(_carriageTexture, _players[i].Position, Color.White);
+                    _spriteBatch.Draw(_carriageTexture, _players[i].Position, null,
+                        _players[i].Color, 0, new Vector2(0, _carriageTexture.Height), _playerScaling, SpriteEffects.None, 0);
                 }
             }
         }
