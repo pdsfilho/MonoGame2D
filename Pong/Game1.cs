@@ -65,7 +65,7 @@ namespace Series2D1
             _graphics.PreferredBackBufferHeight = 500;
             _graphics.IsFullScreen = false;
             _graphics.ApplyChanges();
-            Window.Title = "Monogame Tutorial";
+            Window.Title = "Monogame Cannon Battle";
             base.Initialize();
         }
 
@@ -140,8 +140,15 @@ namespace Series2D1
             {
                 if (_players[i].IsAlive)
                 {
+                    int xPos = (int)_players[i].Position.X;
+                    int yPos = (int)_players[i].Position.Y;
+                    Vector2 cannonOrigin = new Vector2(11, 50);
+
                     _spriteBatch.Draw(_carriageTexture, _players[i].Position, null,
                         _players[i].Color, 0, new Vector2(0, _carriageTexture.Height), _playerScaling, SpriteEffects.None, 0);
+
+                    _spriteBatch.Draw(_cannonTexture, new Vector2(xPos + 20, yPos - 10), null,
+                        _players[i].Color, _players[i].Angle, cannonOrigin, _playerScaling, SpriteEffects.None, 1);
                 }
             }
         }
