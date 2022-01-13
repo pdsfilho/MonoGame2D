@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace Series2D1
 {
@@ -193,6 +194,7 @@ namespace Series2D1
 
             // TODO: Add your update logic here
             ProcessKeyboard();
+            UpdateRocket();
             base.Update(gameTime);
         }
 
@@ -254,6 +256,17 @@ namespace Series2D1
             _spriteBatch.DrawString(_font, "Cannon power: " + player.Power.ToString(), new Vector2(20, 45), Color.White);
         }
 
-       
+        public void UpdateRocket()
+        {
+            if (_rocketFlying)
+            {
+                Vector2 gravity = new Vector2(0, 1);
+                
+                // X and Y are interchanged due to negative Y being necessary to be Up in Vector2
+                _rocketAngle = (float)Math.Atan2(_rocketDirection.X, -_rocketDirection.Y);
+                _rocketDirection += gravity / 10.0f;
+                _rocketPosition += _rocketDirection;
+            }
+        }  
     }
 }
