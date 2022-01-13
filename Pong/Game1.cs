@@ -38,6 +38,9 @@ namespace Series2D1
         private int _numberOfPlayers = 4;
         private int _currentPlayer = 0;
 
+        //Texts
+        private SpriteFont _font;
+
         private Color[] _playerColors = new Color[10]
         {
             Color.Red,
@@ -96,6 +99,9 @@ namespace Series2D1
             _carriageTexture = Content.Load<Texture2D>("carriage");
             _cannonTexture = Content.Load<Texture2D>("cannon");
 
+            //Adding Text
+            _font = Content.Load<SpriteFont>("myFont");
+
             _playerScaling = 40.0f / (float)_carriageTexture.Width;
 
             _screenWidth = _device.PresentationParameters.BackBufferWidth;
@@ -123,6 +129,7 @@ namespace Series2D1
             _spriteBatch.Begin();
             DrawScenery();
             DrawPlayers();
+            DrawText();
             _spriteBatch.End();
 
             base.Draw(gameTime);
@@ -153,6 +160,14 @@ namespace Series2D1
                 }
             }
         }
+        
+        private void DrawText()
+        {
+            PlayerData player = _players[_currentPlayer];
+            int currentAngle = (int)MathHelper.ToDegrees(player.Angle);
+            _spriteBatch.DrawString(_font, "Cannon angle: " + currentAngle.ToString(), new Vector2(20, 20), player.Color);
+            _spriteBatch.DrawString(_font, "Cannon power: " + player.Power.ToString(), new Vector2(20, 45), Color.White);
+        }
 
         private void ProcessKeyboard()
         {
@@ -171,11 +186,11 @@ namespace Series2D1
             //Angle not able to aim at the ground
             if (_players[_currentPlayer].Angle > MathHelper.PiOver2)
             {
-                _players[_currentPlayer].Angle = -MathHelper.PiOver2;
+                _players[_currentPlayer].Angle = MathHelper.PiOver2;
             }
             if (_players[_currentPlayer].Angle < -MathHelper.PiOver2)
             {
-                _players[_currentPlayer].Angle = MathHelper.PiOver2;
+                _players[_currentPlayer].Angle = -MathHelper.PiOver2;
             }
 
             //Power of the cannon.
