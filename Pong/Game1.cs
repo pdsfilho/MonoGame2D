@@ -29,6 +29,14 @@ namespace Series2D1
         private Texture2D _cannonTexture;
         private float _playerScaling;
 
+        //Projectiles
+        private Texture2D _rocketTexture;
+        private bool _rocketFlying = false;
+        private Vector2 _rocketPosition;
+        private Vector2 _rocketDirection;
+        private float _rocketAngle;
+        private float _rocketScaling = 0.1f;
+
         //Screen Info
         private int _screenWidth;
         private int _screenHeight;
@@ -98,6 +106,7 @@ namespace Series2D1
             _foregroundTexture = Content.Load<Texture2D>("foreground");
             _carriageTexture = Content.Load<Texture2D>("carriage");
             _cannonTexture = Content.Load<Texture2D>("cannon");
+            _rocketTexture = Content.Load<Texture2D>("rocket");
 
             //Adding Text
             _font = Content.Load<SpriteFont>("myFont");
@@ -109,66 +118,6 @@ namespace Series2D1
 
             SetUpPlayers();
         }
-
-        protected override void Update(GameTime gameTime)
-        {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-
-            // TODO: Add your update logic here
-            ProcessKeyboard();
-            base.Update(gameTime);
-        }
-
-        protected override void Draw(GameTime gameTime)
-        {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            // TODO: Add your drawing code here
-
-            _spriteBatch.Begin();
-            DrawScenery();
-            DrawPlayers();
-            DrawText();
-            _spriteBatch.End();
-
-            base.Draw(gameTime);
-        }
-
-        private void DrawScenery()
-        {
-            Rectangle screenRectangle = new Rectangle(0, 0, _screenWidth, _screenHeight);
-            _spriteBatch.Draw(_backgroundTexture, screenRectangle, Color.White);
-            _spriteBatch.Draw(_foregroundTexture, screenRectangle, Color.White);
-        }
-
-        private void DrawPlayers()
-        {
-            for (int i = 0; i < _players.Length; i++)
-            {
-                if (_players[i].IsAlive)
-                {
-                    int xPos = (int)_players[i].Position.X;
-                    int yPos = (int)_players[i].Position.Y;
-                    Vector2 cannonOrigin = new Vector2(11, 50);
-
-                    _spriteBatch.Draw(_carriageTexture, _players[i].Position, null,
-                        _players[i].Color, 0, new Vector2(0, _carriageTexture.Height), _playerScaling, SpriteEffects.None, 0);
-
-                    _spriteBatch.Draw(_cannonTexture, new Vector2(xPos + 20, yPos - 10), null,
-                        _players[i].Color, _players[i].Angle, cannonOrigin, _playerScaling, SpriteEffects.None, 1);
-                }
-            }
-        }
-        
-        private void DrawText()
-        {
-            PlayerData player = _players[_currentPlayer];
-            int currentAngle = (int)MathHelper.ToDegrees(player.Angle);
-            _spriteBatch.DrawString(_font, "Cannon angle: " + currentAngle.ToString(), new Vector2(20, 20), player.Color);
-            _spriteBatch.DrawString(_font, "Cannon power: " + player.Power.ToString(), new Vector2(20, 45), Color.White);
-        }
-
         private void ProcessKeyboard()
         {
             KeyboardState keybState = Keyboard.GetState();
@@ -180,7 +129,7 @@ namespace Series2D1
             {
                 _players[_currentPlayer].Angle += 0.01f;
             }
-            
+
             //Pi = 3.14 = 180º
             //PiOver2 = 90º
             //Angle not able to aim at the ground
@@ -219,6 +168,92 @@ namespace Series2D1
             {
                 _players[_currentPlayer].Power = 0;
             }
+
+            //Projectile: Rocket
+            if (keybState.IsKeyDown(Keys.Enter) || keybState.IsKeyDown(Keys.Space))
+            {
+                _rocketFlying = true;
+                _rocketPosition = _players[_currentPlayer].Position;
+                _rocketPosition.X += 20;
+                _rocketPosition.Y -= 10;
+                _rocketAngle = _players[_currentPlayer].Angle;
+
+                //Calculates the projectile dropping arround the screen.
+                Vector2 up = new Vector2(0, -1);
+                Matrix rotMatrix = Matrix.CreateRotationZ(_rocketAngle);
+                _rocketDirection = Vector2.Transform(up, rotMatrix);
+                _rocketDirection *= _players[_currentPlayer].Power / 50.0f;
+            }
         }
+
+        protected override void Update(GameTime gameTime)
+        {
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                Exit();
+
+            // TODO: Add your update logic here
+            ProcessKeyboard();
+            base.Update(gameTime);
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+
+            // TODO: Add your drawing code here
+
+            _spriteBatch.Begin();
+            DrawScenery();
+            DrawPlayers();
+            DrawText();
+            DrawRocket();
+            _spriteBatch.End();
+
+            base.Draw(gameTime);
+        }
+
+        private void DrawScenery()
+        {
+            Rectangle screenRectangle = new Rectangle(0, 0, _screenWidth, _screenHeight);
+            _spriteBatch.Draw(_backgroundTexture, screenRectangle, Color.White);
+            _spriteBatch.Draw(_foregroundTexture, screenRectangle, Color.White);
+        }
+
+        private void DrawPlayers()
+        {
+            for (int i = 0; i < _players.Length; i++)
+            {
+                if (_players[i].IsAlive)
+                {
+                    int xPos = (int)_players[i].Position.X;
+                    int yPos = (int)_players[i].Position.Y;
+                    Vector2 cannonOrigin = new Vector2(11, 50);
+
+                    _spriteBatch.Draw(_carriageTexture, _players[i].Position, null,
+                        _players[i].Color, 0, new Vector2(0, _carriageTexture.Height), _playerScaling, SpriteEffects.None, 0);
+
+                    _spriteBatch.Draw(_cannonTexture, new Vector2(xPos + 20, yPos - 10), null,
+                        _players[i].Color, _players[i].Angle, cannonOrigin, _playerScaling, SpriteEffects.None, 1);
+                }
+            }
+        }
+        private void DrawRocket()
+        {
+            if (_rocketFlying)
+            {
+                _spriteBatch.Draw(_rocketTexture, _rocketPosition, null, _players[_currentPlayer].Color,
+                    _rocketAngle, new Vector2(42, 240), _rocketScaling, SpriteEffects.None, 1);
+            }
+        }
+
+        private void DrawText()
+        {
+            PlayerData player = _players[_currentPlayer];
+            int currentAngle = (int)MathHelper.ToDegrees(player.Angle);
+            _spriteBatch.DrawString(_font, "Cannon angle: " + currentAngle.ToString(), new Vector2(20, 20), player.Color);
+            _spriteBatch.DrawString(_font, "Cannon power: " + player.Power.ToString(), new Vector2(20, 45), Color.White);
+        }
+
+       
     }
 }
