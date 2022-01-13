@@ -36,6 +36,7 @@ namespace Series2D1
         //Players
         private PlayerData[] _players;
         private int _numberOfPlayers = 4;
+        private int _currentPlayer = 0;
 
         private Color[] _playerColors = new Color[10]
         {
@@ -109,7 +110,7 @@ namespace Series2D1
                 Exit();
 
             // TODO: Add your update logic here
-
+            ProcessKeyboard();
             base.Update(gameTime);
         }
 
@@ -150,6 +151,58 @@ namespace Series2D1
                     _spriteBatch.Draw(_cannonTexture, new Vector2(xPos + 20, yPos - 10), null,
                         _players[i].Color, _players[i].Angle, cannonOrigin, _playerScaling, SpriteEffects.None, 1);
                 }
+            }
+        }
+
+        private void ProcessKeyboard()
+        {
+            KeyboardState keybState = Keyboard.GetState();
+            if (keybState.IsKeyDown(Keys.A))
+            {
+                _players[_currentPlayer].Angle -= 0.01f;
+            }
+            if (keybState.IsKeyDown(Keys.D))
+            {
+                _players[_currentPlayer].Angle += 0.01f;
+            }
+            
+            //Pi = 3.14 = 180º
+            //PiOver2 = 90º
+            //Angle not able to aim at the ground
+            if (_players[_currentPlayer].Angle > MathHelper.PiOver2)
+            {
+                _players[_currentPlayer].Angle = -MathHelper.PiOver2;
+            }
+            if (_players[_currentPlayer].Angle < -MathHelper.PiOver2)
+            {
+                _players[_currentPlayer].Angle = MathHelper.PiOver2;
+            }
+
+            //Power of the cannon.
+            if (keybState.IsKeyDown(Keys.S))
+            {
+                _players[_currentPlayer].Power -= 1;
+            }
+            if (keybState.IsKeyDown(Keys.W))
+            {
+                _players[_currentPlayer].Power += 1;
+            }
+            if (keybState.IsKeyDown(Keys.Down))
+            {
+                _players[_currentPlayer].Power -= 20;
+            }
+            if (keybState.IsKeyDown(Keys.Up))
+            {
+                _players[_currentPlayer].Power += 20;
+            }
+
+            if (_players[_currentPlayer].Power > 1000)
+            {
+                _players[_currentPlayer].Power = 1000;
+            }
+            if (_players[_currentPlayer].Power < 0)
+            {
+                _players[_currentPlayer].Power = 0;
             }
         }
     }
