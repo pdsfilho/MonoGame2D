@@ -205,12 +205,21 @@ namespace Series2D1
                 _rocketDirection += gravity / 10.0f;
                 _rocketPosition += _rocketDirection;
 
+                //Adds 5 particles of smoke
                 for (int i = 0; i < 5; i++)
                 {
                     Vector2 smokePos = _rocketPosition;
                     smokePos.X += _randomizer.Next(10) - 5;
                     smokePos.Y += _randomizer.Next(10) - 5;
                     _smokeList.Add(smokePos);
+                   
+                    //Clears smoke and rocket if rocket goes beyond screen's size on X and below ground on positive Y.
+                    if (_rocketPosition.Y > 1000
+                        || _rocketPosition.X > 1000 || _rocketPosition.X <- 1000)
+                    {
+                        _rocketFlying = false;
+                        _smokeList.Clear();
+                    }
                 }
             }
         }
@@ -224,8 +233,6 @@ namespace Series2D1
             UpdateRocket();
             base.Update(gameTime);
         }
-
-
 
         protected override void Draw(GameTime gameTime)
         {
@@ -282,7 +289,8 @@ namespace Series2D1
         {
             for (int i = 0; i < _smokeList.Count; i++)
             {
-                _spriteBatch.Draw(_smokeTexture, _smokeList[i], null, Color.White, 0, new Vector2(40, 35), 0.2f, SpriteEffects.None, 1);
+                _spriteBatch.Draw(_smokeTexture, _smokeList[i], null, Color.White,
+                    0, new Vector2(40, 35), 0.2f, SpriteEffects.None, 1);
             }
         }
 
