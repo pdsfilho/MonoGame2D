@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 
 namespace Series2D1
 {
@@ -37,6 +38,11 @@ namespace Series2D1
         private Vector2 _rocketDirection;
         private float _rocketAngle;
         private float _rocketScaling = 0.1f;
+
+        //Smoke
+        private Texture2D _smokeTexture;
+        private List<Vector2> _smokeList = new List<Vector2>();
+        private Random _randomizer = new Random();
 
         //Screen Info
         private int _screenWidth;
@@ -108,6 +114,7 @@ namespace Series2D1
             _carriageTexture = Content.Load<Texture2D>("carriage");
             _cannonTexture = Content.Load<Texture2D>("cannon");
             _rocketTexture = Content.Load<Texture2D>("rocket");
+            _smokeTexture = Content.Load<Texture2D>("smoke");
 
             //Adding Text
             _font = Content.Load<SpriteFont>("myFont");
@@ -187,6 +194,26 @@ namespace Series2D1
             }
         }
 
+        public void UpdateRocket()
+        {
+            if (_rocketFlying)
+            {
+                Vector2 gravity = new Vector2(0, 1);
+
+                // X and Y are interchanged due to -Y being necessary to be upwards in Vector2
+                _rocketAngle = (float)Math.Atan2(_rocketDirection.X, -_rocketDirection.Y);
+                _rocketDirection += gravity / 10.0f;
+                _rocketPosition += _rocketDirection;
+
+                for (int i = 0; i < 5; i++)
+                {
+                    Vector2 smokePos = _rocketPosition;
+                    smokePos.X += _randomizer.Next(10) - 5;
+                    smokePos.Y += _randomizer.Next(10) - 5;
+                    _smokeList.Add(smokePos);
+                }
+            }
+        }
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -197,6 +224,8 @@ namespace Series2D1
             UpdateRocket();
             base.Update(gameTime);
         }
+
+
 
         protected override void Draw(GameTime gameTime)
         {
@@ -209,6 +238,7 @@ namespace Series2D1
             DrawPlayers();
             DrawText();
             DrawRocket();
+            DrawSmoke();
             _spriteBatch.End();
 
             base.Draw(gameTime);
@@ -248,6 +278,14 @@ namespace Series2D1
             }
         }
 
+        private void DrawSmoke()
+        {
+            for (int i = 0; i < _smokeList.Count; i++)
+            {
+                _spriteBatch.Draw(_smokeTexture, _smokeList[i], null, Color.White, 0, new Vector2(40, 35), 0.2f, SpriteEffects.None, 1);
+            }
+        }
+
         private void DrawText()
         {
             PlayerData player = _players[_currentPlayer];
@@ -255,18 +293,5 @@ namespace Series2D1
             _spriteBatch.DrawString(_font, "Cannon angle: " + currentAngle.ToString(), new Vector2(20, 20), player.Color);
             _spriteBatch.DrawString(_font, "Cannon power: " + player.Power.ToString(), new Vector2(20, 45), Color.White);
         }
-
-        public void UpdateRocket()
-        {
-            if (_rocketFlying)
-            {
-                Vector2 gravity = new Vector2(0, 1);
-                
-                // X and Y are interchanged due to negative Y being necessary to be Up in Vector2
-                _rocketAngle = (float)Math.Atan2(_rocketDirection.X, -_rocketDirection.Y);
-                _rocketDirection += gravity / 10.0f;
-                _rocketPosition += _rocketDirection;
-            }
-        }  
     }
 }
