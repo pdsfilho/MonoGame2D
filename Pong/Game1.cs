@@ -100,11 +100,10 @@ namespace Series2D1
                 _players[i].Color = _playerColors[i];
                 _players[i].Angle = MathHelper.ToRadians(90);
                 _players[i].Power = 100;
+                _players[i].Position = new Vector2();
+                _players[i].Position.X = _screenWidth / (_numberOfPlayers + 1) * (i + 1);
+                _players[i].Position.Y = _terrainContour[(int)_players[i].Position.X];
             }
-            _players[0].Position = new Vector2(100, 193);
-            _players[1].Position = new Vector2(200, 212);
-            _players[2].Position = new Vector2(300, 361);
-            _players[3].Position = new Vector2(400, 164);
         }
 
         protected override void LoadContent()
@@ -127,20 +126,34 @@ namespace Series2D1
 
             _screenWidth = _device.PresentationParameters.BackBufferWidth;
             _screenHeight = _device.PresentationParameters.BackBufferHeight;
-
-            SetUpPlayers();
             
-            //Draw Terrain
+           //Terrain
             GenerateTerrainContour();
+            
+            SetUpPlayers();
+            FlattenTerrainBelowPlayers();
             CreateForeground();
         }
         private void GenerateTerrainContour()
         {
             _terrainContour = new int[_screenWidth];
 
+            double rand1 = _randomizer.NextDouble() + 1;
+            double rand2 = _randomizer.NextDouble() + 2;
+            double rand3 = _randomizer.NextDouble() + 3;
+
+            //Terrain's random wave
+            float offset = _screenHeight / 2;
+            float peakheight = 100;
+            float flatness = 50;
+
             for (int x = 0; x < _screenWidth; x++)
             {
-                _terrainContour[x] = _screenHeight / 2;
+                double height = peakheight / rand1 * Math.Sin((float)x / flatness * rand1 + rand1);
+                height += peakheight / rand2 * Math.Sin((float)x / flatness * rand2 + rand2);
+                height += peakheight / rand3 * Math.Sin((float)x / flatness * rand3 + rand3);
+                height += offset;
+                _terrainContour[x] = (int)height;
             }
         }
         //Store one color for each pixel on screen
@@ -164,6 +177,19 @@ namespace Series2D1
             }
             _foregroundTexture = new Texture2D(_device, _screenWidth, _screenHeight, false, SurfaceFormat.Color);
             _foregroundTexture.SetData(foregroundColors);
+        }
+        private void FlattenTerrainBelowPlayers()
+        {
+            foreach (PlayerData player in _players)
+            {
+                if (player.IsAlive)
+                {
+                    for (int x = 0; x < 40; x++)
+                    {
+                        _terrainContour[(int)player.Position.X + x] = _terrainContour[(int)player.Position.X];
+                    }
+                }
+            }
         }
         private void ProcessKeyboard()
         {
