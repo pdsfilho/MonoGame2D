@@ -56,6 +56,9 @@ namespace Series2D1
         //Texts
         private SpriteFont _font;
 
+        //Terrain
+        private int[] _terrainContour;
+
         private Color[] _playerColors = new Color[10]
         {
             Color.Red,
@@ -110,11 +113,12 @@ namespace Series2D1
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _device = _graphics.GraphicsDevice;
             _backgroundTexture = Content.Load<Texture2D>("background");
-            _foregroundTexture = Content.Load<Texture2D>("foreground");
+            
             _carriageTexture = Content.Load<Texture2D>("carriage");
             _cannonTexture = Content.Load<Texture2D>("cannon");
             _rocketTexture = Content.Load<Texture2D>("rocket");
             _smokeTexture = Content.Load<Texture2D>("smoke");
+            
 
             //Adding Text
             _font = Content.Load<SpriteFont>("myFont");
@@ -125,6 +129,41 @@ namespace Series2D1
             _screenHeight = _device.PresentationParameters.BackBufferHeight;
 
             SetUpPlayers();
+            
+            //Draw Terrain
+            GenerateTerrainContour();
+            CreateForeground();
+        }
+        private void GenerateTerrainContour()
+        {
+            _terrainContour = new int[_screenWidth];
+
+            for (int x = 0; x < _screenWidth; x++)
+            {
+                _terrainContour[x] = _screenHeight / 2;
+            }
+        }
+        //Store one color for each pixel on screen
+        private void CreateForeground()
+        {
+            Color[] foregroundColors = new Color[_screenWidth * _screenHeight];
+
+            for (int x = 0; x < _screenWidth; x++)
+            {
+                for (int y = 0; y < _screenHeight; y++)
+                {
+                    if (y > _terrainContour[x])
+                    {
+                        foregroundColors[x + y * _screenWidth] = Color.Green;
+                    }
+                    else
+                    {
+                        foregroundColors[x + y * _screenWidth] = Color.Transparent;
+                    }
+                }
+            }
+            _foregroundTexture = new Texture2D(_device, _screenWidth, _screenHeight, false, SurfaceFormat.Color);
+            _foregroundTexture.SetData(foregroundColors);
         }
         private void ProcessKeyboard()
         {
