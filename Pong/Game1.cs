@@ -209,11 +209,45 @@ namespace Series2D1
                     colors2D[x, y] = colors1D[x + y * texture.Width];
                 }
             }
-
             return colors2D;
-
         }
 
+        //Collision
+        private Vector2 TexturesCollide(Color[,] tex1, Matrix mat1, Color[,] tex2, Matrix mat2)
+        {
+            Matrix mat1to2 = mat1 * Matrix.Invert(mat2);
+            int width1 = tex1.GetLength(0);
+            int height1 = tex1.GetLength(1);
+            int width2 = tex2.GetLength(0);
+            int height2 = tex2.GetLength(1);
+
+            for (int x1 = 0; x1 < width1; x1++)
+            {
+                for (int y1 = 0; y1 < height1; y1++)
+                {
+                    Vector2 pos1 = new Vector2(x1, y1);
+                    Vector2 pos2 = Vector2.Transform(pos1, mat1to2);
+
+                    int x2 = (int)pos2.X;
+                    int y2 = (int)pos2.Y;
+                    if ((x2 >= 0) && (x2 < width2))
+                    {
+                        if ((y2 >= 0) && (y2 < height2))
+                        {
+                            if (tex1[x1, y1].A > 0)
+                            {
+                                if (tex2[x2, y2].A > 0)
+                                {
+                                    return Vector2.Transform(pos1, mat1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // -1, -1 means no collision has been found
+            return new Vector2(-1, -1);
+        }
 
         private void ProcessKeyboard()
         {
