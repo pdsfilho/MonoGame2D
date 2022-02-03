@@ -7,11 +7,13 @@
     <File>C:/Users/pdant/source/repos/Pong/Pong/Content/background.jpg</File>
     <File>C:/Users/pdant/source/repos/Pong/Pong/Content/cannon.png</File>
     <File>C:/Users/pdant/source/repos/Pong/Pong/Content/carriage.png</File>
+    <File>C:/Users/pdant/source/repos/Pong/Pong/Content/ground.jpg</File>
     <File>C:/Users/pdant/source/repos/Pong/Pong/Content/myFont.spritefont</File>
     <File>C:/Users/pdant/source/repos/Pong/Pong/Content/rocket.png</File>
     <File>C:/Users/pdant/source/repos/Pong/Pong/Content/smoke.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

@@ -25,6 +25,7 @@ namespace Series2D1
         private GraphicsDevice _device;
         private Texture2D _backgroundTexture;
         private Texture2D _foregroundTexture;
+        private Texture2D _groundTexture;
 
         //Player Textures
         private Texture2D _carriageTexture;
@@ -83,8 +84,8 @@ namespace Series2D1
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            _graphics.PreferredBackBufferWidth = 500;
-            _graphics.PreferredBackBufferHeight = 500;
+            _graphics.PreferredBackBufferWidth = 1000;
+            _graphics.PreferredBackBufferHeight = 1000;
             _graphics.IsFullScreen = false;
             _graphics.ApplyChanges();
             Window.Title = "Monogame Cannon Battle";
@@ -112,7 +113,8 @@ namespace Series2D1
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _device = _graphics.GraphicsDevice;
             _backgroundTexture = Content.Load<Texture2D>("background");
-            
+            _groundTexture = Content.Load<Texture2D>("ground");
+
             _carriageTexture = Content.Load<Texture2D>("carriage");
             _cannonTexture = Content.Load<Texture2D>("cannon");
             _rocketTexture = Content.Load<Texture2D>("rocket");
@@ -160,6 +162,7 @@ namespace Series2D1
         private void CreateForeground()
         {
             Color[] foregroundColors = new Color[_screenWidth * _screenHeight];
+            Color[,] groundColors = TextureTo2DArray(_groundTexture);
 
             for (int x = 0; x < _screenWidth; x++)
             {
@@ -167,7 +170,7 @@ namespace Series2D1
                 {
                     if (y > _terrainContour[x])
                     {
-                        foregroundColors[x + y * _screenWidth] = Color.Green;
+                        foregroundColors[x + y * _screenWidth] = groundColors[x % _groundTexture.Width, y % _groundTexture.Height];
                     }
                     else
                     {
@@ -191,6 +194,27 @@ namespace Series2D1
                 }
             }
         }
+
+        //Data extraction from a Texture2D
+        private Color[,] TextureTo2DArray(Texture2D texture)
+        {
+            Color[] colors1D = new Color[texture.Width * texture.Height];
+            texture.GetData(colors1D);
+
+            Color[,] colors2D = new Color[texture.Width, texture.Height];
+            for (int x = 0; x < texture.Width; x++)
+            {
+                for (int y = 0; y < texture.Height; y++)
+                {
+                    colors2D[x, y] = colors1D[x + y * texture.Width];
+                }
+            }
+
+            return colors2D;
+
+        }
+
+
         private void ProcessKeyboard()
         {
             KeyboardState keybState = Keyboard.GetState();
