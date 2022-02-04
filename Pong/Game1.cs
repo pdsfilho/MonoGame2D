@@ -60,6 +60,12 @@ namespace Series2D1
         //Terrain
         private int[] _terrainContour;
 
+        //Collision Arrays
+        private Color[,] _rocketColorArray;
+        private Color[,] _foregroundColorArray;
+        private Color[,] _carriageColorArray;
+        private Color[,] _cannonColorArray;
+
         private Color[] _playerColors = new Color[10]
         {
             Color.Red,
@@ -135,6 +141,11 @@ namespace Series2D1
             SetUpPlayers();
             FlattenTerrainBelowPlayers();
             CreateForeground();
+
+            //Collision Textures
+            _rocketColorArray = TextureTo2DArray(_rocketTexture);
+            _carriageColorArray = TextureTo2DArray(_carriageTexture);
+            _cannonColorArray = TextureTo2DArray(_cannonTexture);
         }
         private void GenerateTerrainContour()
         {
@@ -180,6 +191,8 @@ namespace Series2D1
             }
             _foregroundTexture = new Texture2D(_device, _screenWidth, _screenHeight, false, SurfaceFormat.Color);
             _foregroundTexture.SetData(foregroundColors);
+            //The 2D color array of the foreground needs to be extracted every time the CreateForeground method is called
+            _foregroundColorArray = TextureTo2DArray(_foregroundTexture);
         }
         private void FlattenTerrainBelowPlayers()
         {
@@ -247,6 +260,126 @@ namespace Series2D1
             }
             // -1, -1 means no collision has been found
             return new Vector2(-1, -1);
+        }
+
+        //Collision between the rocket and the terrain.
+        private Vector2 CheckTerrainCollision()
+        {
+            Matrix rocketMat =
+                Matrix.CreateTranslation(-42, -240, 0) *
+                Matrix.CreateRotationZ(_rocketAngle) *
+                Matrix.CreateScale(_rocketScaling) *
+                Matrix.CreateTranslation(_rocketPosition.X, _rocketPosition.Y, 0);
+            
+            Matrix terrainMat = Matrix.Identity;
+            Vector2 terrainCollisionPoint = TexturesCollide(_rocketColorArray, rocketMat, _foregroundColorArray, terrainMat);
+            
+            return terrainCollisionPoint;
+        }
+
+        //Collision between players and the rocket.
+        private Vector2 CheckPlayersCollision()
+        {
+            Matrix rocketMat =
+                Matrix.CreateTranslation(-42, -240, 0) *
+                Matrix.CreateRotationZ(_rocketAngle) *
+                Matrix.CreateScale(_rocketScaling) *
+                Matrix.CreateTranslation(_rocketPosition.X, _rocketPosition.Y, 0);
+
+            for(int i = 0; i < _numberOfPlayers; i++)
+            {
+                PlayerData player = _players[i];
+                if (player.IsAlive)
+                {
+                    //Avoids a self shot when firing the rocket
+                    if (i != _currentPlayer)
+                    {
+                        int xPos = (int)player.Position.X;
+                        int yPos = (int)player.Position.Y;
+
+                        Matrix carriageMat = Matrix.CreateTranslation(0, -_carriageTexture.Height, 0) *
+                                            Matrix.CreateScale(_playerScaling) *
+                                            Matrix.CreateTranslation(xPos, yPos, 0);
+                        Vector2 carriageCollisionPoint = TexturesCollide(_carriageColorArray, carriageMat, _rocketColorArray, rocketMat);
+
+                        //if something > (-1) means collision detected at the carriage
+                        if (carriageCollisionPoint.X > -1)
+                        {
+                            _players[i].IsAlive = false;
+                            return carriageCollisionPoint;
+                        }
+                       
+                        Matrix cannonMat =
+                            Matrix.CreateTranslation(-11, -50, 0) *
+                            Matrix.CreateRotationZ(player.Angle) *
+                            Matrix.CreateScale(_playerScaling) *
+                            Matrix.CreateTranslation(xPos + 20, yPos - 10, 0);
+
+                        Vector2 cannonCollisionPoint = TexturesCollide(_cannonColorArray, cannonMat, _rocketColorArray, rocketMat);
+
+                        //if something > (-1) means collision detected at the cannon
+                        if (cannonCollisionPoint.X > -1)
+                        {
+                            _players[i].IsAlive = false;
+                            return cannonCollisionPoint;
+                        }
+                    }
+                }
+            }
+            return new Vector2(-1, -1);
+        }
+        private void CheckCollisions(GameTime gameTime)
+        {
+            Vector2 terrainCollisionPoint = CheckTerrainCollision();
+            Vector2 playerCollisionPoint = CheckPlayersCollision();
+            bool rocketOutOfScreen = CheckOutOfScreen();
+
+            if (playerCollisionPoint.X > -1)
+            {
+                _rocketFlying = false;
+
+                _smokeList = new List<Vector2>();
+                NextPlayer();
+            }
+
+            if (terrainCollisionPoint.X > -1)
+            {
+                _rocketFlying = false;
+
+                _smokeList = new List<Vector2>();
+                NextPlayer();
+            }
+
+            if (rocketOutOfScreen)
+            {
+                _rocketFlying = false;
+
+                _smokeList = new List<Vector2>();
+                NextPlayer();
+            }
+        }
+
+        //Incremets the currentPLayer value and checks whether the new player is still alive.
+        private void NextPlayer()
+        {
+            _currentPlayer = _currentPlayer + 1;
+            _currentPlayer = _currentPlayer % _numberOfPlayers;
+            while (!_players[_currentPlayer].IsAlive)
+            {
+                _currentPlayer = ++_currentPlayer % _numberOfPlayers;
+            }
+        }
+
+        //Cheks if the rocket is below the lower boundary
+        //OR to the left of the window
+        //OR to the right of the window
+        private bool CheckOutOfScreen()
+        {
+            bool rocketOutOfScreen = _rocketPosition.Y > _screenHeight;
+            rocketOutOfScreen |= _rocketPosition.X < 0;
+            rocketOutOfScreen |= _rocketPosition.X > _screenWidth;
+
+            return rocketOutOfScreen;
         }
 
         private void ProcessKeyboard()
@@ -354,6 +487,13 @@ namespace Series2D1
             // TODO: Add your update logic here
             ProcessKeyboard();
             UpdateRocket();
+           
+            if (_rocketFlying)
+            {
+                UpdateRocket();
+                CheckCollisions(gameTime);
+            }
+            
             base.Update(gameTime);
         }
 
