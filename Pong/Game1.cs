@@ -563,6 +563,11 @@ namespace Series2D1
             DrawText();
             DrawRocket();
             DrawSmoke();
+           
+            _spriteBatch.End();
+
+            //Activate BlendState for explosions.
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
             DrawExplosion();
             _spriteBatch.End();
 
