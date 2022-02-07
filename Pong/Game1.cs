@@ -507,13 +507,22 @@ namespace Series2D1
                 Exit();
 
             // TODO: Add your update logic here
-            ProcessKeyboard();
+            //Locks cannon after shooting the rocket
+            if (!_rocketFlying && _particleList.Count == 0)
+            {
+                ProcessKeyboard();
+            }
             UpdateRocket();
            
             if (_rocketFlying)
             {
                 UpdateRocket();
                 CheckCollisions(gameTime);
+            }
+
+            if (_particleList.Count> 0)
+            {
+                UpdateParticles(gameTime);
             }
             
             base.Update(gameTime);
@@ -548,6 +557,41 @@ namespace Series2D1
             for (int i = 0; i < numberOfParticles; i++)
             {
                 AddExplosionParticle(explosionPos, size, maxAge, gameTime);
+            }
+        }
+
+        //This method gets the current game time 'now' in Milliseconds (a float).
+        //Next, it scrolls through all particles and finds the current age of each particle,
+        //if the particle is older than its maximum age then we delete it from our List.
+        private void UpdateParticles(GameTime gameTime)
+        {
+            float now = (float)gameTime.TotalGameTime.TotalMilliseconds;
+            for (int i = _particleList.Count - 1; i >= 0; i--)
+            {
+                ParticleData particle = _particleList[i];
+                float timeAlive = now - particle.BirthTime;
+
+                if (timeAlive > particle.MaxAge)
+                {
+                    _particleList.RemoveAt(i);
+                }
+                else
+                {
+                    //Update current particle
+                    float relAge = timeAlive / particle.MaxAge;
+                    particle.Position = 0.5f * particle.Acceleration * relAge * relAge + particle.Direction * relAge + particle.OriginalPosition;
+
+                    //Transparency of particle
+                    float invAge = 1.0f - relAge;
+                    particle.ModColor = new Color(new Vector4(invAge, invAge, invAge, invAge));
+
+                    //Scale of particle
+                    Vector2 positionFromCenter = particle.Position - particle.OriginalPosition;
+                    float distance = positionFromCenter.Length();
+                    particle.Scaling = (50.0f + distance) / 200.0f;
+
+                    _particleList[i] = particle;
+                }
             }
         }
 
