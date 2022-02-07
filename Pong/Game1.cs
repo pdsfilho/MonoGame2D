@@ -6,6 +6,19 @@ using System.Collections.Generic;
 
 namespace Series2D1
 {
+    #region Particle Data
+    public struct ParticleData
+    {
+        public float BirthTime;
+        public float MaxAge;
+        public Vector2 OriginalPosition;
+        public Vector2 Acceleration;
+        public Vector2 Direction;
+        public Vector2 Position;
+        public float Scaling;
+        public Color ModColor;
+    }
+    #endregion
     #region Player Data
     public struct PlayerData
     {
@@ -65,6 +78,10 @@ namespace Series2D1
         private Color[,] _foregroundColorArray;
         private Color[,] _carriageColorArray;
         private Color[,] _cannonColorArray;
+
+        //Particles
+        private Texture2D _explosionTexture;
+        List<ParticleData> _particleList = new List<ParticleData>();
 
         private Color[] _playerColors = new Color[10]
         {
@@ -146,6 +163,9 @@ namespace Series2D1
             _rocketColorArray = TextureTo2DArray(_rocketTexture);
             _carriageColorArray = TextureTo2DArray(_carriageTexture);
             _cannonColorArray = TextureTo2DArray(_cannonTexture);
+
+            //Particles
+            _explosionTexture = Content.Load<Texture2D>("explosion");
         }
         private void GenerateTerrainContour()
         {
@@ -339,6 +359,7 @@ namespace Series2D1
                 _rocketFlying = false;
 
                 _smokeList = new List<Vector2>();
+                AddExplosion(playerCollisionPoint, 10, 80.0f, 2000.0f, gameTime);
                 NextPlayer();
             }
 
@@ -347,6 +368,7 @@ namespace Series2D1
                 _rocketFlying = false;
 
                 _smokeList = new List<Vector2>();
+                AddExplosion(terrainCollisionPoint, 4, 30.0f, 1000.0f, gameTime);
                 NextPlayer();
             }
 
@@ -497,6 +519,38 @@ namespace Series2D1
             base.Update(gameTime);
         }
 
+        private void AddExplosionParticle(Vector2 explosionPos, float explosionSize, float maxAge, GameTime gameTime)
+        {
+            ParticleData particle = new ParticleData();
+
+            particle.OriginalPosition = explosionPos;
+            particle.Position = particle.OriginalPosition;
+
+            particle.BirthTime = (float)gameTime.TotalGameTime.TotalMilliseconds;
+            particle.MaxAge = maxAge;
+            particle.Scaling = 0.25f;
+            particle.ModColor = Color.White;
+            
+            //Random Explosions
+            float particleDistance = (float)_randomizer.NextDouble() * explosionSize;
+            Vector2 displacement = new Vector2(particleDistance, 0);
+            float angle = MathHelper.ToRadians(_randomizer.Next(360));
+            displacement = Vector2.Transform(displacement, Matrix.CreateRotationZ(angle));
+
+            particle.Direction = displacement;
+            particle.Acceleration = 3.0f * particle.Direction;
+            _particleList.Add(particle);
+        }
+
+        private void AddExplosion(Vector2 explosionPos, int numberOfParticles, 
+            float size, float maxAge, GameTime gameTime)
+        {
+            for (int i = 0; i < numberOfParticles; i++)
+            {
+                AddExplosionParticle(explosionPos, size, maxAge, gameTime);
+            }
+        }
+
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -509,6 +563,7 @@ namespace Series2D1
             DrawText();
             DrawRocket();
             DrawSmoke();
+            DrawExplosion();
             _spriteBatch.End();
 
             base.Draw(gameTime);
@@ -563,6 +618,16 @@ namespace Series2D1
             int currentAngle = (int)MathHelper.ToDegrees(player.Angle);
             _spriteBatch.DrawString(_font, "Cannon angle: " + currentAngle.ToString(), new Vector2(20, 20), player.Color);
             _spriteBatch.DrawString(_font, "Cannon power: " + player.Power.ToString(), new Vector2(20, 45), Color.White);
+        }
+
+        private void DrawExplosion()
+        {
+            for (int i = 0; i < _particleList.Count; i++)
+            {
+                ParticleData particle = _particleList[i];
+                _spriteBatch.Draw(_explosionTexture, particle.Position, null, 
+                    particle.ModColor, i, new Vector2(256, 256), particle.Scaling, SpriteEffects.None, 1);
+            }
         }
     }
 }
