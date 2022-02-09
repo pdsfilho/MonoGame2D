@@ -782,6 +782,8 @@ namespace Series2D1
             _spriteBatch.DrawString(_font, "- Power: S", new Vector2(20, 110), player.Color);
             _spriteBatch.DrawString(_font, "++ Power: UP", new Vector2(20, 135), player.Color);
             _spriteBatch.DrawString(_font, "-- Power: Down", new Vector2(20, 160), player.Color);
+            _spriteBatch.DrawString(_font, "Fire: Spacebar", new Vector2(20, 185), player.Color);
+
 
         }
 
