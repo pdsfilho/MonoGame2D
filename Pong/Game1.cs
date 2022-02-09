@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Audio;
 using System;
 using System.Collections.Generic;
 
@@ -85,6 +86,11 @@ namespace Series2D1
         //Particles
         private Texture2D _explosionTexture;
         List<ParticleData> _particleList = new List<ParticleData>();
+
+        //Sounds
+        private SoundEffect _hitCannon;
+        private SoundEffect _hitTerrain;
+        private SoundEffect _launch;
 
         private Color[] _playerColors = new Color[10]
         {
@@ -172,6 +178,11 @@ namespace Series2D1
             
             //Explosion Crater
             _explosionColorArray = TextureTo2DArray(_explosionTexture);
+
+            //Sounds
+            _hitCannon = Content.Load<SoundEffect>("hitcannon");
+            _hitTerrain = Content.Load<SoundEffect>("hitterrain");
+            _launch = Content.Load<SoundEffect>("launch");
         }
         private void GenerateTerrainContour()
         {
@@ -360,6 +371,7 @@ namespace Series2D1
             Vector2 playerCollisionPoint = CheckPlayersCollision();
             bool rocketOutOfScreen = CheckOutOfScreen();
 
+            //Hit Player
             if (playerCollisionPoint.X > -1)
             {
                 _rocketFlying = false;
@@ -367,8 +379,11 @@ namespace Series2D1
                 _smokeList = new List<Vector2>();
                 AddExplosion(playerCollisionPoint, 10, 80.0f, 2000.0f, gameTime);
                 NextPlayer();
+               
+                _hitCannon.Play();
             }
 
+            //Hit Terrain
             if (terrainCollisionPoint.X > -1)
             {
                 _rocketFlying = false;
@@ -376,6 +391,8 @@ namespace Series2D1
                 _smokeList = new List<Vector2>();
                 AddExplosion(terrainCollisionPoint, 4, 30.0f, 1000.0f, gameTime);
                 NextPlayer();
+                
+                _hitTerrain.Play();
             }
 
             if (rocketOutOfScreen)
@@ -469,6 +486,8 @@ namespace Series2D1
                 _rocketPosition.X += 20;
                 _rocketPosition.Y -= 10;
                 _rocketAngle = _players[_currentPlayer].Angle;
+
+                _launch.Play();
 
                 //Calculates the projectile dropping arround the screen.
                 Vector2 up = new Vector2(0, -1);
