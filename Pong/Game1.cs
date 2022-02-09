@@ -53,6 +53,9 @@ namespace Series2D1
         private float _rocketAngle;
         private float _rocketScaling = 0.1f;
 
+        //Explosions
+        private Color[,] _explosionColorArray;
+
         //Smoke
         private Texture2D _smokeTexture;
         private List<Vector2> _smokeList = new List<Vector2>();
@@ -166,6 +169,9 @@ namespace Series2D1
 
             //Particles
             _explosionTexture = Content.Load<Texture2D>("explosion");
+            
+            //Explosion Crater
+            _explosionColorArray = TextureTo2DArray(_explosionTexture);
         }
         private void GenerateTerrainContour()
         {
@@ -558,6 +564,22 @@ namespace Series2D1
             {
                 AddExplosionParticle(explosionPos, size, maxAge, gameTime);
             }
+            //rotation and randomness to explosions
+            float rotation = (float)_randomizer.Next(10);
+            Matrix mat = Matrix.CreateTranslation(-_explosionTexture.Width / 2, -_explosionTexture.Height / 2, 0) *
+                                            Matrix.CreateRotationZ(rotation) *
+                                            Matrix.CreateScale(size / (float)_explosionTexture.Width * 2.0f) *
+                                            Matrix.CreateTranslation(explosionPos.X, explosionPos.Y, 0);
+            
+            AddCrater(_explosionColorArray, mat);
+
+            //Update player position as terrain degradates
+            for (int i = 0; i < _players.Length; i++)
+            {
+                _players[i].Position.Y = _terrainContour[(int)_players[i].Position.X];
+            }
+            FlattenTerrainBelowPlayers();
+            CreateForeground();
         }
 
         //This method gets the current game time 'now' in Milliseconds (a float).
@@ -591,6 +613,36 @@ namespace Series2D1
                     particle.Scaling = (50.0f + distance) / 200.0f;
 
                     _particleList[i] = particle;
+                }
+            }
+        }
+
+        //Craters need to have the same size of explosion image
+        private void AddCrater(Color[,] tex, Matrix mat)
+        {
+            int width = tex.GetLength(0);
+            int height = tex.GetLength(1);
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < width; y++)
+                {
+                    if (tex[x, y].R > 10)
+                    {
+                        Vector2 imagePos = new Vector2(x, y);
+                        Vector2 screenPos = Vector2.Transform(imagePos, mat);
+
+                        int screenX = (int)screenPos.X;
+                        int screenY = (int)screenPos.Y;
+
+                        if ((screenX) > 0 && (screenX < _screenWidth))
+                        {
+                            if (_terrainContour[screenX] < screenY)
+                            {
+                                _terrainContour[screenX] = screenY;
+                            }
+                        }
+                    }
                 }
             }
         }
