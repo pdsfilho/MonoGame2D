@@ -775,7 +775,14 @@ namespace Series2D1
             PlayerData player = _players[_currentPlayer];
             int currentAngle = (int)MathHelper.ToDegrees(player.Angle);
             _spriteBatch.DrawString(_font, "Cannon angle: " + currentAngle.ToString(), new Vector2(20, 20), player.Color);
-            _spriteBatch.DrawString(_font, "Cannon power: " + player.Power.ToString(), new Vector2(20, 45), Color.White);
+            //_spriteBatch.DrawString(_font, "Cannon power: " + player.Power.ToString(), new Vector2(20, 45), Color.White);
+            _spriteBatch.DrawString(_font, "Cannon power: " + player.Power.ToString(), new Vector2(20, 45), player.Color);
+            _spriteBatch.DrawString(_font, "Move Cannon: A or D", new Vector2(20, 70), player.Color);
+            _spriteBatch.DrawString(_font, "+ Power: W", new Vector2(20, 95), player.Color);
+            _spriteBatch.DrawString(_font, "- Power: S", new Vector2(20, 110), player.Color);
+            _spriteBatch.DrawString(_font, "++ Power: UP", new Vector2(20, 135), player.Color);
+            _spriteBatch.DrawString(_font, "-- Power: Down", new Vector2(20, 160), player.Color);
+
         }
 
         private void DrawExplosion()
