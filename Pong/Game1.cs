@@ -92,6 +92,11 @@ namespace Series2D1
         private SoundEffect _hitTerrain;
         private SoundEffect _launch;
 
+        //Resolution independency
+        private const bool _resolutionIndependent = false;
+        private Vector2 _baseScreenSize = new Vector2(800, 600);
+
+
         private Color[] _playerColors = new Color[10]
         {
             Color.Red,
@@ -124,7 +129,7 @@ namespace Series2D1
             base.Initialize();
         }
 
-        private void SetUpPlayers() 
+        private void SetUpPlayers()
         {
             _players = new PlayerData[_numberOfPlayers];
             for (int i = 0; i < _numberOfPlayers; i++)
@@ -151,19 +156,17 @@ namespace Series2D1
             _cannonTexture = Content.Load<Texture2D>("cannon");
             _rocketTexture = Content.Load<Texture2D>("rocket");
             _smokeTexture = Content.Load<Texture2D>("smoke");
-            
+
 
             //Adding Text
             _font = Content.Load<SpriteFont>("myFont");
 
-            _playerScaling = 40.0f / (float)_carriageTexture.Width;
-
             _screenWidth = _device.PresentationParameters.BackBufferWidth;
             _screenHeight = _device.PresentationParameters.BackBufferHeight;
-            
-           //Terrain
+
+            //Terrain
             GenerateTerrainContour();
-            
+
             SetUpPlayers();
             FlattenTerrainBelowPlayers();
             CreateForeground();
@@ -175,7 +178,7 @@ namespace Series2D1
 
             //Particles
             _explosionTexture = Content.Load<Texture2D>("explosion");
-            
+
             //Explosion Crater
             _explosionColorArray = TextureTo2DArray(_explosionTexture);
 
@@ -183,6 +186,22 @@ namespace Series2D1
             _hitCannon = Content.Load<SoundEffect>("hitcannon");
             _hitTerrain = Content.Load<SoundEffect>("hitterrain");
             _launch = Content.Load<SoundEffect>("launch");
+
+            //Resolution Independency
+            //Stretches graphics to fetch the resolution.
+            if (_resolutionIndependent)
+            {
+                _screenWidth = (int)_baseScreenSize.X;
+                _screenHeight = (int)_baseScreenSize.Y;
+            }
+
+            //Makes a larger terrain by creating textures to fetch the resolution.
+            else
+            {
+                _screenWidth = _device.PresentationParameters.BackBufferWidth;
+                _screenHeight = _device.PresentationParameters.BackBufferHeight;
+            }
+            _playerScaling = 40.0f / (float)_carriageTexture.Width;
         }
         private void GenerateTerrainContour()
         {
@@ -307,10 +326,10 @@ namespace Series2D1
                 Matrix.CreateRotationZ(_rocketAngle) *
                 Matrix.CreateScale(_rocketScaling) *
                 Matrix.CreateTranslation(_rocketPosition.X, _rocketPosition.Y, 0);
-            
+
             Matrix terrainMat = Matrix.Identity;
             Vector2 terrainCollisionPoint = TexturesCollide(_rocketColorArray, rocketMat, _foregroundColorArray, terrainMat);
-            
+
             return terrainCollisionPoint;
         }
 
@@ -323,7 +342,7 @@ namespace Series2D1
                 Matrix.CreateScale(_rocketScaling) *
                 Matrix.CreateTranslation(_rocketPosition.X, _rocketPosition.Y, 0);
 
-            for(int i = 0; i < _numberOfPlayers; i++)
+            for (int i = 0; i < _numberOfPlayers; i++)
             {
                 PlayerData player = _players[i];
                 if (player.IsAlive)
@@ -345,7 +364,7 @@ namespace Series2D1
                             _players[i].IsAlive = false;
                             return carriageCollisionPoint;
                         }
-                       
+
                         Matrix cannonMat =
                             Matrix.CreateTranslation(-11, -50, 0) *
                             Matrix.CreateRotationZ(player.Angle) *
@@ -378,9 +397,10 @@ namespace Series2D1
 
                 _smokeList = new List<Vector2>();
                 AddExplosion(playerCollisionPoint, 10, 80.0f, 2000.0f, gameTime);
-                NextPlayer();
-               
                 _hitCannon.Play();
+               
+                NextPlayer();
+
             }
 
             //Hit Terrain
@@ -390,9 +410,10 @@ namespace Series2D1
 
                 _smokeList = new List<Vector2>();
                 AddExplosion(terrainCollisionPoint, 4, 30.0f, 1000.0f, gameTime);
-                NextPlayer();
-                
                 _hitTerrain.Play();
+               
+                NextPlayer();
+               
             }
 
             if (rocketOutOfScreen)
@@ -515,10 +536,10 @@ namespace Series2D1
                     smokePos.X += _randomizer.Next(10) - 5;
                     smokePos.Y += _randomizer.Next(10) - 5;
                     _smokeList.Add(smokePos);
-                   
+
                     //Clears smoke and rocket if rocket goes beyond screen's size on X and below ground on positive Y.
                     if (_rocketPosition.Y > 1000
-                        || _rocketPosition.X > 1000 || _rocketPosition.X <- 1000)
+                        || _rocketPosition.X > 1000 || _rocketPosition.X < -1000)
                     {
                         _rocketFlying = false;
                         _smokeList.Clear();
@@ -538,18 +559,18 @@ namespace Series2D1
                 ProcessKeyboard();
             }
             UpdateRocket();
-           
+
             if (_rocketFlying)
             {
                 UpdateRocket();
                 CheckCollisions(gameTime);
             }
 
-            if (_particleList.Count> 0)
+            if (_particleList.Count > 0)
             {
                 UpdateParticles(gameTime);
             }
-            
+
             base.Update(gameTime);
         }
 
@@ -564,7 +585,7 @@ namespace Series2D1
             particle.MaxAge = maxAge;
             particle.Scaling = 0.25f;
             particle.ModColor = Color.White;
-            
+
             //Random Explosions
             float particleDistance = (float)_randomizer.NextDouble() * explosionSize;
             Vector2 displacement = new Vector2(particleDistance, 0);
@@ -576,7 +597,7 @@ namespace Series2D1
             _particleList.Add(particle);
         }
 
-        private void AddExplosion(Vector2 explosionPos, int numberOfParticles, 
+        private void AddExplosion(Vector2 explosionPos, int numberOfParticles,
             float size, float maxAge, GameTime gameTime)
         {
             for (int i = 0; i < numberOfParticles; i++)
@@ -589,7 +610,7 @@ namespace Series2D1
                                             Matrix.CreateRotationZ(rotation) *
                                             Matrix.CreateScale(size / (float)_explosionTexture.Width * 2.0f) *
                                             Matrix.CreateTranslation(explosionPos.X, explosionPos.Y, 0);
-            
+
             AddCrater(_explosionColorArray, mat);
 
             //Update player position as terrain degradates
@@ -672,17 +693,34 @@ namespace Series2D1
 
             // TODO: Add your drawing code here
 
-            _spriteBatch.Begin();
+            #region Resolution independency
+            Vector3 screenScalingFactor;
+            if (_resolutionIndependent)
+            {
+                float horScaling = (float)_device.PresentationParameters.BackBufferWidth / _baseScreenSize.X;
+                float verScaling = (float)_device.PresentationParameters.BackBufferHeight / _baseScreenSize.Y;
+                screenScalingFactor = new Vector3(horScaling, verScaling, 1);
+            }
+            else
+            {
+                screenScalingFactor = new Vector3(1, 1, 1);
+            }
+            Matrix globalTransformation = Matrix.CreateScale(screenScalingFactor);
+            #endregion
+
+            _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, null, null, globalTransformation);
+            // _spriteBatch.Begin();
             DrawScenery();
             DrawPlayers();
             DrawText();
             DrawRocket();
             DrawSmoke();
-           
+
             _spriteBatch.End();
 
             //Activate BlendState for explosions.
-            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, null, null, null, null, globalTransformation);
+            //_spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
             DrawExplosion();
             _spriteBatch.End();
 
@@ -745,7 +783,7 @@ namespace Series2D1
             for (int i = 0; i < _particleList.Count; i++)
             {
                 ParticleData particle = _particleList[i];
-                _spriteBatch.Draw(_explosionTexture, particle.Position, null, 
+                _spriteBatch.Draw(_explosionTexture, particle.Position, null,
                     particle.ModColor, i, new Vector2(256, 256), particle.Scaling, SpriteEffects.None, 1);
             }
         }
